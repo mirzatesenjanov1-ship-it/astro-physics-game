@@ -19,6 +19,11 @@ let pressure = 50;
 let targetPressure = 50;
 let starRadius = 50;
 
+// --- LEVEL 3 DATA (Black Hole) ---
+let blackHole = { x: canvas.width / 2, y: canvas.height / 2, radius: 40 };
+let ship = { x: 100, y: 100, vx: 2, vy: 0, radius: 10 };
+let timeFactor = 1;
+
 function showLevels() {
     document.getElementById('main-menu').style.display = 'none';
     document.getElementById('level-menu').style.display = 'flex';
@@ -37,6 +42,10 @@ function startLevel(level) {
         message = "Balance the Star! Use UP/DOWN arrows";
         requestAnimationFrame(gameLoopLevel2);
     }
+    if (level === 3) {
+    message = "Collect data near the Event Horizon. Don't fall in!";
+    requestAnimationFrame(gameLoopLevel3);
+}
 }
 
 // Башкаруу логикасы
@@ -120,3 +129,6 @@ function drawUI(extra = "") {
     ctx.font = "18px Arial"; ctx.fillText(extra, canvas.width / 2, 100);
     if (currentLevel === 1) document.getElementById('speed-val').innerText = Math.round(Math.sqrt(sat.vx**2 + sat.vy**2)*10);
 }
+let blackHole = { x: canvas.width / 2, y: canvas.height / 2, radius: 40 };
+let ship = { x: 100, y: 100, vx: 2, vy: 0, radius: 10 };
+let timeFactor = 1;
