@@ -5,6 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cosmos Odyssey: Physics Quest</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* Реклама блогу үчүн кошумча стилдер (экрандын астында турат) */
+        .ad-container {
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 5;
+        }
+        .ad-label {
+            color: #555;
+            font-size: 10px;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+    </style>
 </head>
 <body>
 
@@ -33,7 +52,7 @@
         <button class="reset-btn" onclick="location.reload()">Reset Mission</button>
     </div>
 
-    <div id="success-screen" class="achievement-popup">
+    <div id="success-screen" class="achievement-popup" style="display: none;">
         <h2 id="success-title">MISSION SUCCESS!</h2>
         <p id="success-message">You have mastered the laws of physics.</p>
         <div style="display: flex; flex-direction: column; gap: 10px;">
@@ -48,7 +67,7 @@
         <span class="ad-label">Advertisement</span>
         <div id="adsense-slot" style="width: 728px; height: 90px; background: rgba(255,255,255,0.05); border: 1px dashed #333; display: flex; align-items: center; justify-content: center;">
             <span style="color: #444; font-size: 12px;">Google AdSense Banner Space</span>
-        </div>
+            </div>
     </div>
 
     <canvas id="gameCanvas"></canvas>
@@ -56,16 +75,17 @@
     <script src="game.js"></script>
     
     <script>
-        // Ийгилик терезесин көрсөтүү
+        // Ийгилик терезесин башкаруу
         function showSuccess(msg) {
             document.getElementById('game-ui').style.display = 'none';
             document.getElementById('success-screen').style.display = 'block';
             document.getElementById('success-message').innerText = msg;
         }
 
-        // Реклама блогун деңгээл ичинде жашырып/көрсөтүү (опционалдуу)
+        // Рекламаны деңгээлдерде иштетүү (керек болсо)
         function toggleAds(show) {
-            document.querySelector('.ad-container').style.display = show ? 'flex' : 'none';
+            const ad = document.querySelector('.ad-container');
+            if(ad) ad.style.display = show ? 'flex' : 'none';
         }
     </script>
 </body>
