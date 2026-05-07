@@ -12,7 +12,7 @@ let currentLevel = 0;
 let gameOver = false;
 let message = "";
 
-// --- ОБЪЕКТТЕРДИН МААЛЫМАТТАРЫ ---
+// --- ФИЗИКАЛЫК КОНСТАНТАЛАР ЖАНА ОБЪЕКТТЕР ---
 const G = 0.4;
 let earth = { x: 0, y: 0, radius: 60 };
 let sat = { x: 0, y: 0, radius: 8, vx: 0, vy: 0, launched: false };
@@ -31,7 +31,7 @@ let atomsCreated = 0;
 const targetAtoms = 10;
 let universeSize = 100;
 
-// --- UI БАШКАРУУ ФУНКЦИЯЛАРЫ ---
+// --- UI БАШКАРУУ ---
 function showLevels() {
     document.getElementById('main-menu').style.display = 'none';
     document.getElementById('level-menu').style.display = 'flex';
@@ -42,16 +42,16 @@ function backToMenu() {
     document.getElementById('main-menu').style.display = 'flex';
 }
 
-// PREMIUM LAB MODE КИРҮҮ 
-// Бул функция ар бир баскан сайын жаңыдан код сурайт (айлык жазылууну текшерүү үчүн)
+// PREMIUM LAB MODE КИРҮҮ (English Version)
 function enterPremiumLab() {
-    const code = prompt("Premium Lab Mode үчүн кодду киргизиңиз (Бул код ай сайын жаңыланып турат):");
+    // Сиз сураган англис тилиндеги текст
+    const code = prompt("To enter Premium Lab Mode, please subscribe to the 'astro-physics-game' level on Boosty and enter your access code here:");
 
     if (code === "1999") {
-        alert("Код кабыл алынды! Premium лабораторияга кош келиңиз.");
+        alert("Access granted! Welcome to the Premium Lab.");
         startPremiumLab();
     } else if (code !== null) {
-        alert("Ката код! Жарактуу кодду Бусти баракчабыздан алсаңыз болот.");
+        alert("Invalid code! Please subscribe to the 'astro-physics-game' level on our Boosty page to get your monthly access code.");
         window.open('https://boosty.to/astrophysica/purchase/3923515?ssource=DIRECT&share=subscription_link', '_blank');
     }
 }
@@ -104,7 +104,7 @@ function startLevel(level) {
     }
 }
 
-// БАШКАРУУ
+// БАШКАРУУ (КЛАВИАТУРА ЖАНА ЧЫЧКАН)
 window.addEventListener('keydown', (e) => {
     if (gameOver) return;
     if (currentLevel === 1 && e.code === 'Space' && !sat.launched) {
@@ -152,23 +152,20 @@ canvas.addEventListener('mousedown', (e) => {
     }
 });
 
-// --- LOOPS ---
+// --- ОЮНДУН ЦИКЛДЕРИ (LOOPS) ---
 
 function gameLoopLevel1() {
     if (currentLevel !== 1 || gameOver) return;
     ctx.fillStyle = '#020205'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-
     if (sat.launched) {
         let dx = earth.x - sat.x; let dy = earth.y - sat.y;
         let dist = Math.sqrt(dx*dx + dy*dy);
         let force = (G * 2500) / (dist * dist); 
         sat.vx += force * (dx / dist); sat.vy += force * (dy / dist);
         sat.x += sat.vx; sat.y += sat.vy;
-
         let currentAngle = Math.atan2(sat.y - earth.y, sat.x - earth.x);
         if (lastAngle < 0 && currentAngle >= 0) angleCount++;
         lastAngle = currentAngle;
-
         if (dist < earth.radius + sat.radius) { message = "CRASHED!"; gameOver = true; }
         if (dist > 1000) { message = "LOST!"; gameOver = true; }
         if (angleCount >= 2) { gameOver = true; showSuccess("MISSION SUCCESS!"); }
@@ -235,7 +232,7 @@ function premiumLoop() {
     requestAnimationFrame(premiumLoop);
 }
 
-// ЖАРДАМЧЫЛАР
+// ЖАРДАМЧЫ ФУНКЦИЯЛАР (DRAWING & UI)
 function drawObject(x, y, r, color, blur) {
     ctx.save();
     ctx.shadowBlur = blur; ctx.shadowColor = color;
