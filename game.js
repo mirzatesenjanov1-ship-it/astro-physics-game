@@ -25,7 +25,7 @@ let timeFactor = 1;
 let angleCount = 0;
 let lastAngle = 0;
 
-// --- LEVEL 4 (Big Bang) DATA ---
+// --- LEVEL 4 & PREMIUM DATA ---
 let particles = [];
 let atomsCreated = 0;
 const targetAtoms = 10;
@@ -42,16 +42,29 @@ function backToMenu() {
     document.getElementById('main-menu').style.display = 'flex';
 }
 
-// PREMIUM LAB MODE КИРҮҮ (Код: 1999)
+// PREMIUM LAB MODE КИРҮҮ 
+// Бул функция ар бир баскан сайын жаңыдан код сурайт (айлык жазылууну текшерүү үчүн)
 function enterPremiumLab() {
-    const code = prompt("Premium Lab Mode үчүн кодду киргизиңиз (Бусти жазылуучулары үчүн):");
+    const code = prompt("Premium Lab Mode үчүн кодду киргизиңиз (Бул код ай сайын жаңыланып турат):");
+
     if (code === "1999") {
-        alert("Кош келиңиз! Premium режим активдештирилди.");
-        // Бул жерге келечектеги Premium деңгээлдин логикасын кошсоңуз болот
-    } else {
-        alert("Ката код! Жазылып, кодду алуу үчүн төмөнкү шилтемени басыңыз.");
+        alert("Код кабыл алынды! Premium лабораторияга кош келиңиз.");
+        startPremiumLab();
+    } else if (code !== null) {
+        alert("Ката код! Жарактуу кодду Бусти баракчабыздан алсаңыз болот.");
         window.open('https://boosty.to/astrophysica/purchase/3923515?ssource=DIRECT&share=subscription_link', '_blank');
     }
+}
+
+function startPremiumLab() {
+    currentLevel = 'premium';
+    gameOver = false;
+    particles = [];
+    document.getElementById('main-menu').style.display = 'none';
+    document.getElementById('level-menu').style.display = 'none';
+    document.getElementById('game-ui').style.display = 'block';
+    message = "PREMIUM LAB: Physics Sandbox Active";
+    requestAnimationFrame(premiumLoop);
 }
 
 function startLevel(level) {
@@ -82,17 +95,9 @@ function startLevel(level) {
         message = "Avoid the Event Horizon! Use ARROW KEYS";
         requestAnimationFrame(gameLoopLevel3);
     } else if (level === 4) {
-        atomsCreated = 0;
-        universeSize = 100;
-        particles = [];
+        atomsCreated = 0; universeSize = 100; particles = [];
         for(let i=0; i<15; i++) {
-            particles.push({
-                x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height,
-                vx: (Math.random() - 0.5) * 6,
-                vy: (Math.random() - 0.5) * 6,
-                radius: 6
-            });
+            particles.push({ x: Math.random()*canvas.width, y: Math.random()*canvas.height, vx: (Math.random()-0.5)*6, vy: (Math.random()-0.5)*6, radius: 6, color: '#ff00ff' });
         }
         message = "Click particles to form Atoms!";
         requestAnimationFrame(gameLoopLevel4);
@@ -103,8 +108,7 @@ function startLevel(level) {
 window.addEventListener('keydown', (e) => {
     if (gameOver) return;
     if (currentLevel === 1 && e.code === 'Space' && !sat.launched) {
-        sat.vx = 5.2;
-        sat.launched = true;
+        sat.vx = 5.2; sat.launched = true;
     }
     if (currentLevel === 2) {
         if (e.code === 'ArrowUp') targetPressure += 8;
@@ -119,11 +123,11 @@ window.addEventListener('keydown', (e) => {
 });
 
 canvas.addEventListener('mousedown', (e) => {
-    if (currentLevel === 4 && !gameOver) {
-        const rect = canvas.getBoundingClientRect();
-        const mouseX = e.clientX - rect.left;
-        const mouseY = e.clientY - rect.top;
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
 
+    if (currentLevel === 4 && !gameOver) {
         particles.forEach((p, index) => {
             let dist = Math.sqrt((mouseX - p.x)**2 + (mouseY - p.y)**2);
             if(dist < 30) {
@@ -131,9 +135,19 @@ canvas.addEventListener('mousedown', (e) => {
                 atomsCreated++;
                 if(atomsCreated >= targetAtoms) {
                     gameOver = true;
-                    showSuccess("BIG BANG SUCCESS! Сиз ааламдын алгачкы материясын жараттыңыз.");
+                    showSuccess("BIG BANG SUCCESS! Matter is born.");
                 }
             }
+        });
+    }
+
+    if (currentLevel === 'premium') {
+        particles.push({
+            x: mouseX, y: mouseY,
+            vx: (Math.random() - 0.5) * 5,
+            vy: (Math.random() - 0.5) * 5,
+            radius: Math.random() * 20 + 5,
+            color: `hsl(${Math.random() * 360}, 70%, 60%)`
         });
     }
 });
@@ -142,17 +156,13 @@ canvas.addEventListener('mousedown', (e) => {
 
 function gameLoopLevel1() {
     if (currentLevel !== 1 || gameOver) return;
-    ctx.fillStyle = '#020205';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#020205'; ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     if (sat.launched) {
-        let dx = earth.x - sat.x;
-        let dy = earth.y - sat.y;
+        let dx = earth.x - sat.x; let dy = earth.y - sat.y;
         let dist = Math.sqrt(dx*dx + dy*dy);
-        
         let force = (G * 2500) / (dist * dist); 
-        sat.vx += force * (dx / dist);
-        sat.vy += force * (dy / dist);
+        sat.vx += force * (dx / dist); sat.vy += force * (dy / dist);
         sat.x += sat.vx; sat.y += sat.vy;
 
         let currentAngle = Math.atan2(sat.y - earth.y, sat.x - earth.x);
@@ -161,12 +171,8 @@ function gameLoopLevel1() {
 
         if (dist < earth.radius + sat.radius) { message = "CRASHED!"; gameOver = true; }
         if (dist > 1000) { message = "LOST!"; gameOver = true; }
-        if (angleCount >= 2) { 
-            gameOver = true; 
-            showSuccess("MISSION SUCCESS! Спутник туруктуу орбитага чыкты.");
-        }
+        if (angleCount >= 2) { gameOver = true; showSuccess("MISSION SUCCESS!"); }
     }
-
     drawObject(earth.x, earth.y, earth.radius, '#1e90ff', 40);
     drawObject(sat.x, sat.y, sat.radius, 'white', 15);
     drawUI(`Orbits: ${angleCount}/2`);
@@ -175,53 +181,29 @@ function gameLoopLevel1() {
 
 function gameLoopLevel2() {
     if (currentLevel !== 2 || gameOver) return;
-    ctx.fillStyle = '#020205';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
+    ctx.fillStyle = '#020205'; ctx.fillRect(0, 0, canvas.width, canvas.height);
     pressure += (targetPressure - pressure) * 0.05;
     starRadius = 150 - (pressure * 1.2);
     let r = Math.min(255, pressure * 5);
     let g = Math.min(255, 255 - Math.abs(pressure - 50) * 4);
     let b = Math.min(255, 255 - pressure * 2);
-    
     drawObject(canvas.width / 2, canvas.height / 2, starRadius, `rgb(${r},${g},${b})`, 50);
-    
     if (pressure > 95 || pressure < 10) { message = "STAR DESTROYED!"; gameOver = true; }
-    // Жылдызды 5 секунд кармап турса жеңиш
-    if (pressure > 45 && pressure < 55) {
-        // Бул жерге кошумча таймер логикасын кошсо болот
-    }
-
     drawUI(`Pressure: ${Math.round(pressure)}%`);
     requestAnimationFrame(gameLoopLevel2);
 }
 
 function gameLoopLevel3() {
     if (currentLevel !== 3 || gameOver) return;
-    ctx.fillStyle = '#020205';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    let dx = blackHole.x - ship.x;
-    let dy = blackHole.y - ship.y;
+    ctx.fillStyle = '#020205'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    let dx = blackHole.x - ship.x; let dy = blackHole.y - ship.y;
     let dist = Math.sqrt(dx*dx + dy*dy);
-
     timeFactor = Math.max(0.1, (dist - blackHole.radius) / 250);
     let force = (G * 800) / (dist * dist);
-    ship.vx += force * (dx / dist);
-    ship.vy += force * (dy / dist);
-
-    ship.x += ship.vx * timeFactor;
-    ship.y += ship.vy * timeFactor;
-
-    ctx.beginPath();
-    ctx.arc(blackHole.x, blackHole.y, blackHole.radius + 50, 0, Math.PI * 2);
-    ctx.strokeStyle = "rgba(255, 140, 0, 0.2)";
-    ctx.lineWidth = 15;
-    ctx.stroke();
-
+    ship.vx += force * (dx / dist); ship.vy += force * (dy / dist);
+    ship.x += ship.vx * timeFactor; ship.y += ship.vy * timeFactor;
     drawObject(blackHole.x, blackHole.y, blackHole.radius, 'black', 40);
     drawObject(ship.x, ship.y, ship.radius, '#00ff00', 15);
-
     if (dist < blackHole.radius + 5) { message = "SPAGHETTIFIED!"; gameOver = true; }
     drawUI(`Time Dilation: x${timeFactor.toFixed(2)}`);
     requestAnimationFrame(gameLoopLevel3);
@@ -229,23 +211,28 @@ function gameLoopLevel3() {
 
 function gameLoopLevel4() {
     if (currentLevel !== 4 || gameOver) return;
-    
-    universeSize += 0.3;
-    ctx.fillStyle = `rgb(${Math.max(0, 30 - universeSize/10)}, 0, ${Math.min(50, universeSize/5)})`;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
+    ctx.fillStyle = '#020205'; ctx.fillRect(0, 0, canvas.width, canvas.height);
     particles.forEach((p) => {
-        p.x += p.vx;
-        p.y += p.vy;
-
+        p.x += p.vx; p.y += p.vy;
         if(p.x < 0 || p.x > canvas.width) p.vx *= -1;
         if(p.y < 0 || p.y > canvas.height) p.vy *= -1;
-
-        drawObject(p.x, p.y, p.radius, '#ff00ff', 15);
+        drawObject(p.x, p.y, p.radius, p.color, 15);
     });
-
-    drawUI(`Atoms Created: ${atomsCreated}/${targetAtoms}`);
+    drawUI(`Atoms: ${atomsCreated}/${targetAtoms}`);
     requestAnimationFrame(gameLoopLevel4);
+}
+
+function premiumLoop() {
+    if (currentLevel !== 'premium' || gameOver) return;
+    ctx.fillStyle = '#01010a'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    particles.forEach((p) => {
+        p.x += p.vx; p.y += p.vy;
+        if(p.x < 0 || p.x > canvas.width) p.vx *= -1;
+        if(p.y < 0 || p.y > canvas.height) p.vy *= -1;
+        drawObject(p.x, p.y, p.radius, p.color, 20);
+    });
+    drawUI("PREMIUM MODE: Click to spawn planets");
+    requestAnimationFrame(premiumLoop);
 }
 
 // ЖАРДАМЧЫЛАР
@@ -261,15 +248,12 @@ function drawUI(extra = "") {
     ctx.shadowBlur = 0; ctx.fillStyle = "white"; ctx.textAlign = "center";
     ctx.font = "bold 24px Arial"; ctx.fillText(message, canvas.width / 2, 60);
     ctx.font = "18px Arial"; ctx.fillText(extra, canvas.width / 2, 100);
-    
     let v = 0;
     if(currentLevel === 1) v = Math.sqrt(sat.vx**2 + sat.vy**2);
     if(currentLevel === 3) v = Math.sqrt(ship.vx**2 + ship.vy**2);
-    
     document.getElementById('speed-val').innerText = Math.round(v * 10);
 }
 
-// Ийгилик терезесин көрсөтүү
 function showSuccess(msg) {
     document.getElementById('game-ui').style.display = 'none';
     document.getElementById('success-screen').style.display = 'block';
