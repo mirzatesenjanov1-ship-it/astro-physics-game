@@ -31,6 +31,7 @@ let atomsCreated = 0;
 const targetAtoms = 10;
 let universeSize = 100;
 
+// --- UI БАШКАРУУ ФУНКЦИЯЛАРЫ ---
 function showLevels() {
     document.getElementById('main-menu').style.display = 'none';
     document.getElementById('level-menu').style.display = 'flex';
@@ -41,11 +42,25 @@ function backToMenu() {
     document.getElementById('main-menu').style.display = 'flex';
 }
 
+// PREMIUM LAB MODE КИРҮҮ (Код: 1999)
+function enterPremiumLab() {
+    const code = prompt("Premium Lab Mode үчүн кодду киргизиңиз (Бусти жазылуучулары үчүн):");
+    if (code === "1999") {
+        alert("Кош келиңиз! Premium режим активдештирилди.");
+        // Бул жерге келечектеги Premium деңгээлдин логикасын кошсоңуз болот
+    } else {
+        alert("Ката код! Жазылып, кодду алуу үчүн төмөнкү шилтемени басыңыз.");
+        window.open('https://boosty.to/astrophysica/purchase/3923515?ssource=DIRECT&share=subscription_link', '_blank');
+    }
+}
+
 function startLevel(level) {
     currentLevel = level;
     gameOver = false;
+    message = "";
     document.getElementById('level-menu').style.display = 'none';
     document.getElementById('game-ui').style.display = 'block';
+    document.getElementById('success-screen').style.display = 'none';
     
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
@@ -88,7 +103,7 @@ function startLevel(level) {
 window.addEventListener('keydown', (e) => {
     if (gameOver) return;
     if (currentLevel === 1 && e.code === 'Space' && !sat.launched) {
-        sat.vx = 5.2; // Оптималдуу орбиталык ылдамдык
+        sat.vx = 5.2;
         sat.launched = true;
     }
     if (currentLevel === 2) {
@@ -115,8 +130,8 @@ canvas.addEventListener('mousedown', (e) => {
                 particles.splice(index, 1);
                 atomsCreated++;
                 if(atomsCreated >= targetAtoms) {
-                    message = "BIG BANG SUCCESS! Matter is born.";
                     gameOver = true;
+                    showSuccess("BIG BANG SUCCESS! Сиз ааламдын алгачкы материясын жараттыңыз.");
                 }
             }
         });
@@ -138,17 +153,18 @@ function gameLoopLevel1() {
         let force = (G * 2500) / (dist * dist); 
         sat.vx += force * (dx / dist);
         sat.vy += force * (dy / dist);
-        
-        sat.x += sat.vx; 
-        sat.y += sat.vy;
+        sat.x += sat.vx; sat.y += sat.vy;
 
         let currentAngle = Math.atan2(sat.y - earth.y, sat.x - earth.x);
         if (lastAngle < 0 && currentAngle >= 0) angleCount++;
         lastAngle = currentAngle;
 
-        if (dist < earth.radius + sat.radius) { message = "CRASHED INTO EARTH!"; gameOver = true; }
-        if (dist > 1000) { message = "LOST IN DEEP SPACE!"; gameOver = true; }
-        if (angleCount >= 2) { message = "MISSION SUCCESS!"; gameOver = true; }
+        if (dist < earth.radius + sat.radius) { message = "CRASHED!"; gameOver = true; }
+        if (dist > 1000) { message = "LOST!"; gameOver = true; }
+        if (angleCount >= 2) { 
+            gameOver = true; 
+            showSuccess("MISSION SUCCESS! Спутник туруктуу орбитага чыкты.");
+        }
     }
 
     drawObject(earth.x, earth.y, earth.radius, '#1e90ff', 40);
@@ -169,7 +185,12 @@ function gameLoopLevel2() {
     let b = Math.min(255, 255 - pressure * 2);
     
     drawObject(canvas.width / 2, canvas.height / 2, starRadius, `rgb(${r},${g},${b})`, 50);
+    
     if (pressure > 95 || pressure < 10) { message = "STAR DESTROYED!"; gameOver = true; }
+    // Жылдызды 5 секунд кармап турса жеңиш
+    if (pressure > 45 && pressure < 55) {
+        // Бул жерге кошумча таймер логикасын кошсо болот
+    }
 
     drawUI(`Pressure: ${Math.round(pressure)}%`);
     requestAnimationFrame(gameLoopLevel2);
@@ -223,15 +244,17 @@ function gameLoopLevel4() {
         drawObject(p.x, p.y, p.radius, '#ff00ff', 15);
     });
 
-    drawUI(`Nucleosynthesis: ${atomsCreated}/${targetAtoms}`);
+    drawUI(`Atoms Created: ${atomsCreated}/${targetAtoms}`);
     requestAnimationFrame(gameLoopLevel4);
 }
 
 // ЖАРДАМЧЫЛАР
 function drawObject(x, y, r, color, blur) {
+    ctx.save();
     ctx.shadowBlur = blur; ctx.shadowColor = color;
     ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
     ctx.fillStyle = color; ctx.fill(); ctx.closePath();
+    ctx.restore();
 }
 
 function drawUI(extra = "") {
@@ -244,4 +267,11 @@ function drawUI(extra = "") {
     if(currentLevel === 3) v = Math.sqrt(ship.vx**2 + ship.vy**2);
     
     document.getElementById('speed-val').innerText = Math.round(v * 10);
+}
+
+// Ийгилик терезесин көрсөтүү
+function showSuccess(msg) {
+    document.getElementById('game-ui').style.display = 'none';
+    document.getElementById('success-screen').style.display = 'block';
+    document.getElementById('success-message').innerText = msg;
 }
