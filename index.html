@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ky">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cosmos Odyssey</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="main-menu" class="overlay">
+        <h1>COSMOS ODYSSEY</h1>
+        <p>Астрофизикалык саякатка даярсызбы?</p>
+        <div class="menu-buttons">
+            <button onclick="showLevels()">Оюнду баштоо</button>
+            <button onclick="alert('Жакында кошулат!')">Лаборатория</button>
+        </div>
+    </div>
+
+    <div id="level-menu" class="overlay" style="display: none;">
+        <h2>Деңгээлди тандаңыз</h2>
+        <div class="level-grid">
+            <button onclick="startLevel(1)">1. Гравитация (Орбита)</button>
+            <button disabled>2. Жылдыздын өмүрү</button>
+            <button disabled>3. Кара туюк</button>
+        </div>
+        <button class="back-btn" onclick="backToMenu()">Артка</button>
+    </div>
+
+    <div id="game-ui" style="display: none;">
+        <div class="stats">Ылдамдык: <span id="speed-val">0</span> км/с</div>
+        <button class="reset-btn" onclick="location.reload()">Кайра баштоо</button>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <script src="game.js"></script>
+</body>
+</html>
