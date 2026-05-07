@@ -44,7 +44,6 @@ function backToMenu() {
 
 // PREMIUM LAB MODE КИРҮҮ (English Version)
 function enterPremiumLab() {
-    // Сиз сураган англис тилиндеги текст
     const code = prompt("To enter Premium Lab Mode, please subscribe to the 'astro-physics-game' level on Boosty and enter your access code here:");
 
     if (code === "1999") {
@@ -104,7 +103,7 @@ function startLevel(level) {
     }
 }
 
-// БАШКАРУУ (КЛАВИАТУРА ЖАНА ЧЫЧКАН)
+// БАШКАРУУ
 window.addEventListener('keydown', (e) => {
     if (gameOver) return;
     if (currentLevel === 1 && e.code === 'Space' && !sat.launched) {
@@ -199,8 +198,21 @@ function gameLoopLevel3() {
     let force = (G * 800) / (dist * dist);
     ship.vx += force * (dx / dist); ship.vy += force * (dy / dist);
     ship.x += ship.vx * timeFactor; ship.y += ship.vy * timeFactor;
-    drawObject(blackHole.x, blackHole.y, blackHole.radius, 'black', 40);
+
+    // --- КАРА ТЕШИКТИ КӨРҮНҮКТҮҮ КЫЛУУ ---
+    ctx.save();
+    ctx.shadowBlur = 60;
+    ctx.shadowColor = '#ff4500'; 
+    ctx.beginPath();
+    ctx.arc(blackHole.x, blackHole.y, blackHole.radius + 2, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(255, 69, 0, 0.5)';
+    ctx.lineWidth = 4;
+    ctx.stroke();
+    ctx.restore();
+
+    drawObject(blackHole.x, blackHole.y, blackHole.radius, 'black', 0);
     drawObject(ship.x, ship.y, ship.radius, '#00ff00', 15);
+    
     if (dist < blackHole.radius + 5) { message = "SPAGHETTIFIED!"; gameOver = true; }
     drawUI(`Time Dilation: x${timeFactor.toFixed(2)}`);
     requestAnimationFrame(gameLoopLevel3);
@@ -232,7 +244,7 @@ function premiumLoop() {
     requestAnimationFrame(premiumLoop);
 }
 
-// ЖАРДАМЧЫ ФУНКЦИЯЛАР (DRAWING & UI)
+// ЖАРДАМЧЫ ФУНКЦИЯЛАР
 function drawObject(x, y, r, color, blur) {
     ctx.save();
     ctx.shadowBlur = blur; ctx.shadowColor = color;
@@ -248,7 +260,8 @@ function drawUI(extra = "") {
     let v = 0;
     if(currentLevel === 1) v = Math.sqrt(sat.vx**2 + sat.vy**2);
     if(currentLevel === 3) v = Math.sqrt(ship.vx**2 + ship.vy**2);
-    document.getElementById('speed-val').innerText = Math.round(v * 10);
+    const speedElement = document.getElementById('speed-val');
+    if(speedElement) speedElement.innerText = Math.round(v * 10);
 }
 
 function showSuccess(msg) {
