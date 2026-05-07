@@ -1,32 +1,39 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+
+// Экрандын өлчөмүн орнотуу
+function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resize);
+resize();
 
 let currentLevel = 0;
 let gameOver = false;
 let message = "";
 
-// --- LEVEL 1 DATA (Orbit) ---
-let earth = { x: canvas.width / 2, y: canvas.height / 2, radius: 60 };
-let sat = { x: canvas.width / 2, y: canvas.height / 2 - 120, radius: 8, vx: 0, vy: 0, launched: false };
+// --- ОБЪЕКТТЕРДИН БАШТАПКЫ МААЛЫМАТТАРЫ ---
 const G = 0.4;
-let angleCount = 0;
-let lastAngle = 0;
-
-// --- LEVEL 2 DATA (Star) ---
+let earth = { x: 0, y: 0, radius: 60 };
+let sat = { x: 0, y: 0, radius: 8, vx: 0, vy: 0, launched: false };
 let pressure = 50;
 let targetPressure = 50;
 let starRadius = 50;
-
-// --- LEVEL 3 DATA (Black Hole) ---
-let blackHole = { x: canvas.width / 2, y: canvas.height / 2, radius: 45 };
-let ship = { x: 150, y: 150, vx: 1.5, vy: 0, radius: 10 };
+let blackHole = { x: 0, y: 0, radius: 45 };
+let ship = { x: 0, y: 0, vx: 2, vy: 0, radius: 10 };
 let timeFactor = 1;
+let angleCount = 0;
+let lastAngle = 0;
 
 function showLevels() {
     document.getElementById('main-menu').style.display = 'none';
     document.getElementById('level-menu').style.display = 'flex';
+}
+
+function backToMenu() {
+    document.getElementById('level-menu').style.display = 'none';
+    document.getElementById('main-menu').style.display = 'flex';
 }
 
 function startLevel(level) {
@@ -35,31 +42,33 @@ function startLevel(level) {
     document.getElementById('level-menu').style.display = 'none';
     document.getElementById('game-ui').style.display = 'block';
     
-    // Reset data for the levels
+    // Ар бир деңгээл үчүн объекттерди экрандын ортосуна жайгаштыруу
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+
     if (level === 1) {
-        sat = { x: canvas.width / 2, y: canvas.height / 2 - 120, radius: 8, vx: 0, vy: 0, launched: false };
+        earth = { x: centerX, y: centerY, radius: 60 };
+        sat = { x: centerX, y: centerY - 120, radius: 8, vx: 0, vy: 0, launched: false };
         angleCount = 0;
-        message = "Press SPACE to launch the satellite!";
+        message = "Press SPACE to launch!";
         requestAnimationFrame(gameLoopLevel1);
     } else if (level === 2) {
         pressure = 50; targetPressure = 50;
         message = "Balance the Star! Use UP/DOWN arrows";
         requestAnimationFrame(gameLoopLevel2);
     } else if (level === 3) {
-        ship = { x: 150, y: 150, vx: 2, vy: 0, radius: 10 };
-        message = "Avoid the Event Horizon! Use ARROW KEYS to move";
+        blackHole = { x: centerX, y: centerY, radius: 45 };
+        ship = { x: centerX - 200, y: centerY - 200, vx: 2, vy: 0, radius: 10 };
+        message = "Avoid the Event Horizon! Use ARROW KEYS";
         requestAnimationFrame(gameLoopLevel3);
     }
 }
 
-// БАШКАРУУ ЛОГИКАСЫ (ОҢДОЛДУ)
+// БАШКАРУУ
 window.addEventListener('keydown', (e) => {
     if (gameOver) return;
-
     if (currentLevel === 1 && e.code === 'Space' && !sat.launched) {
-        sat.vx = 4.8;
-        sat.launched = true;
-        message = "Maintain a stable orbit!";
+        sat.vx = 4.8; sat.launched = true;
     }
     if (currentLevel === 2) {
         if (e.code === 'ArrowUp') targetPressure += 8;
@@ -94,7 +103,7 @@ function gameLoopLevel1() {
 
         if (dist < earth.radius + sat.radius) { message = "CRASHED!"; gameOver = true; }
         if (dist > 800) { message = "LOST IN SPACE!"; gameOver = true; }
-        if (angleCount >= 3) { message = "SUCCESS! Stable orbit achieved."; gameOver = true; }
+        if (angleCount >= 3) { message = "MISSION SUCCESS!"; gameOver = true; }
     }
 
     drawObject(earth.x, earth.y, earth.radius, '#1e90ff', 30);
@@ -111,22 +120,18 @@ function gameLoopLevel2() {
 
     pressure += (targetPressure - pressure) * 0.05;
     starRadius = 150 - (pressure * 1.2);
-
     let r = Math.min(255, pressure * 5);
     let g = Math.min(255, 255 - Math.abs(pressure - 50) * 4);
     let b = Math.min(255, 255 - pressure * 2);
-    let starColor = `rgb(${r}, ${g}, ${b})`;
+    
+    drawObject(canvas.width / 2, canvas.height / 2, starRadius, `rgb(${r},${g},${b})`, 50);
+    if (pressure > 95 || pressure < 10) { message = "STAR DESTROYED!"; gameOver = true; }
 
-    drawObject(canvas.width / 2, canvas.height / 2, starRadius, starColor, 50);
-
-    if (pressure > 95) { message = "SUPERNOVA EXPLOSION!"; gameOver = true; }
-    if (pressure < 10) { message = "COLLAPSED INTO A DWARF!"; gameOver = true; }
-
-    drawUI(`Internal Pressure: ${Math.round(pressure)}%`);
+    drawUI(`Pressure: ${Math.round(pressure)}%`);
     requestAnimationFrame(gameLoopLevel2);
 }
 
-// --- LEVEL 3 LOOP (ЖАҢЫ КОШУЛДУ) ---
+// --- LEVEL 3 LOOP (BLACK HOLE) ---
 function gameLoopLevel3() {
     if (currentLevel !== 3 || gameOver) return;
     ctx.fillStyle = '#020205';
@@ -136,10 +141,7 @@ function gameLoopLevel3() {
     let dy = blackHole.y - ship.y;
     let dist = Math.sqrt(dx*dx + dy*dy);
 
-    // Салыштырмалуулук теориясы: Убакыттын жайлашы
     timeFactor = Math.max(0.1, (dist - blackHole.radius) / 250);
-    
-    // Гравитация
     let force = (G * 800) / (dist * dist);
     ship.vx += force * (dx / dist);
     ship.vy += force * (dy / dist);
@@ -148,26 +150,21 @@ function gameLoopLevel3() {
     ship.y += ship.vy * timeFactor;
 
     // Сүрөттөө
-    // Аккрециялык диск
     ctx.beginPath();
     ctx.arc(blackHole.x, blackHole.y, blackHole.radius + 50, 0, Math.PI * 2);
     ctx.strokeStyle = "rgba(255, 140, 0, 0.2)";
     ctx.lineWidth = 15;
     ctx.stroke();
 
-    drawObject(blackHole.x, blackHole.y, blackHole.radius, 'black', 40); // Кара туюк
-    drawObject(ship.x, ship.y, ship.radius, '#00ff00', 15); // Кеме
+    drawObject(blackHole.x, blackHole.y, blackHole.radius, 'black', 40);
+    drawObject(ship.x, ship.y, ship.radius, '#00ff00', 15);
 
-    if (dist < blackHole.radius + 5) {
-        message = "SPAGHETTIFIED! You fell in.";
-        gameOver = true;
-    }
-
+    if (dist < blackHole.radius + 5) { message = "SPAGHETTIFIED!"; gameOver = true; }
     drawUI(`Time Dilation: x${timeFactor.toFixed(2)}`);
     requestAnimationFrame(gameLoopLevel3);
 }
 
-// ЖАРДАМЧЫ ФУНКЦИЯЛАР
+// ЖАРДАМЧЫЛАР
 function drawObject(x, y, r, color, blur) {
     ctx.shadowBlur = blur; ctx.shadowColor = color;
     ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
@@ -178,10 +175,6 @@ function drawUI(extra = "") {
     ctx.shadowBlur = 0; ctx.fillStyle = "white"; ctx.textAlign = "center";
     ctx.font = "bold 24px Arial"; ctx.fillText(message, canvas.width / 2, 60);
     ctx.font = "18px Arial"; ctx.fillText(extra, canvas.width / 2, 100);
-    
-    let speed = 0;
-    if (currentLevel === 1) speed = Math.sqrt(sat.vx**2 + sat.vy**2);
-    if (currentLevel === 3) speed = Math.sqrt(ship.vx**2 + ship.vy**2);
-    
-    document.getElementById('speed-val').innerText = Math.round(speed * 10);
+    let v = (currentLevel === 1) ? Math.sqrt(sat.vx**2 + sat.vy**2) : Math.sqrt(ship.vx**2 + ship.vy**2);
+    document.getElementById('speed-val').innerText = Math.round(v * 10);
 }
