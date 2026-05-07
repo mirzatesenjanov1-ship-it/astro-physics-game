@@ -1,7 +1,6 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// Экрандын өлчөмүн орнотуу
 function resize() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -13,7 +12,7 @@ let currentLevel = 0;
 let gameOver = false;
 let message = "";
 
-// --- ОБЪЕКТТЕРДИН БАШТАПКЫ МААЛЫМАТТАРЫ ---
+// --- ОБЪЕКТТЕРДИН МААЛЫМАТТАРЫ ---
 const G = 0.4;
 let earth = { x: 0, y: 0, radius: 60 };
 let sat = { x: 0, y: 0, radius: 8, vx: 0, vy: 0, launched: false };
@@ -25,6 +24,12 @@ let ship = { x: 0, y: 0, vx: 2, vy: 0, radius: 10 };
 let timeFactor = 1;
 let angleCount = 0;
 let lastAngle = 0;
+
+// --- LEVEL 4 (Big Bang) DATA ---
+let particles = [];
+let atomsCreated = 0;
+const targetAtoms = 10;
+let universeSize = 100;
 
 function showLevels() {
     document.getElementById('main-menu').style.display = 'none';
@@ -42,7 +47,6 @@ function startLevel(level) {
     document.getElementById('level-menu').style.display = 'none';
     document.getElementById('game-ui').style.display = 'block';
     
-    // Ар бир деңгээл үчүн объекттерди экрандын ортосуна жайгаштыруу
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
 
@@ -61,6 +65,21 @@ function startLevel(level) {
         ship = { x: centerX - 200, y: centerY - 200, vx: 2, vy: 0, radius: 10 };
         message = "Avoid the Event Horizon! Use ARROW KEYS";
         requestAnimationFrame(gameLoopLevel3);
+    } else if (level === 4) {
+        atomsCreated = 0;
+        universeSize = 100;
+        particles = [];
+        for(let i=0; i<15; i++) {
+            particles.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                vx: (Math.random() - 0.5) * 6,
+                vy: (Math.random() - 0.5) * 6,
+                radius: 6
+            });
+        }
+        message = "Click particles to form Atoms!";
+        requestAnimationFrame(gameLoopLevel4);
     }
 }
 
@@ -82,7 +101,29 @@ window.addEventListener('keydown', (e) => {
     }
 });
 
-// --- LEVEL 1 LOOP ---
+// Чычкан менен чыкылдатуу (Level 4 үчүн)
+canvas.addEventListener('mousedown', (e) => {
+    if (currentLevel === 4 && !gameOver) {
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        particles.forEach((p, index) => {
+            let dist = Math.sqrt((mouseX - p.x)**2 + (mouseY - p.y)**2);
+            if(dist < 30) {
+                particles.splice(index, 1);
+                atomsCreated++;
+                if(atomsCreated >= targetAtoms) {
+                    message = "BIG BANG SUCCESS! Matter is born.";
+                    gameOver = true;
+                }
+            }
+        });
+    }
+});
+
+// --- LOOPS ---
+
 function gameLoopLevel1() {
     if (currentLevel !== 1 || gameOver) return;
     ctx.fillStyle = '#020205';
@@ -112,7 +153,6 @@ function gameLoopLevel1() {
     requestAnimationFrame(gameLoopLevel1);
 }
 
-// --- LEVEL 2 LOOP ---
 function gameLoopLevel2() {
     if (currentLevel !== 2 || gameOver) return;
     ctx.fillStyle = '#020205';
@@ -131,7 +171,6 @@ function gameLoopLevel2() {
     requestAnimationFrame(gameLoopLevel2);
 }
 
-// --- LEVEL 3 LOOP (BLACK HOLE) ---
 function gameLoopLevel3() {
     if (currentLevel !== 3 || gameOver) return;
     ctx.fillStyle = '#020205';
@@ -149,7 +188,6 @@ function gameLoopLevel3() {
     ship.x += ship.vx * timeFactor;
     ship.y += ship.vy * timeFactor;
 
-    // Сүрөттөө
     ctx.beginPath();
     ctx.arc(blackHole.x, blackHole.y, blackHole.radius + 50, 0, Math.PI * 2);
     ctx.strokeStyle = "rgba(255, 140, 0, 0.2)";
@@ -164,6 +202,28 @@ function gameLoopLevel3() {
     requestAnimationFrame(gameLoopLevel3);
 }
 
+function gameLoopLevel4() {
+    if (currentLevel !== 4 || gameOver) return;
+    
+    universeSize += 0.3;
+    // Аалам кеңейген сайын фон муздап (көк түскө) өтөт
+    ctx.fillStyle = `rgb(${Math.max(0, 30 - universeSize/10)}, 0, ${Math.min(50, universeSize/5)})`;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    particles.forEach((p) => {
+        p.x += p.vx;
+        p.y += p.vy;
+
+        if(p.x < 0 || p.x > canvas.width) p.vx *= -1;
+        if(p.y < 0 || p.y > canvas.height) p.vy *= -1;
+
+        drawObject(p.x, p.y, p.radius, '#ff00ff', 15);
+    });
+
+    drawUI(`Nucleosynthesis: ${atomsCreated}/${targetAtoms} Atoms`);
+    requestAnimationFrame(gameLoopLevel4);
+}
+
 // ЖАРДАМЧЫЛАР
 function drawObject(x, y, r, color, blur) {
     ctx.shadowBlur = blur; ctx.shadowColor = color;
@@ -175,6 +235,10 @@ function drawUI(extra = "") {
     ctx.shadowBlur = 0; ctx.fillStyle = "white"; ctx.textAlign = "center";
     ctx.font = "bold 24px Arial"; ctx.fillText(message, canvas.width / 2, 60);
     ctx.font = "18px Arial"; ctx.fillText(extra, canvas.width / 2, 100);
-    let v = (currentLevel === 1) ? Math.sqrt(sat.vx**2 + sat.vy**2) : Math.sqrt(ship.vx**2 + ship.vy**2);
+    
+    let v = 0;
+    if(currentLevel === 1) v = Math.sqrt(sat.vx**2 + sat.vy**2);
+    if(currentLevel === 3) v = Math.sqrt(ship.vx**2 + ship.vy**2);
+    
     document.getElementById('speed-val').innerText = Math.round(v * 10);
 }
