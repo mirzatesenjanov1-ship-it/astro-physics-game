@@ -13,7 +13,7 @@
         <p>Explore the wonders of Astrophysics</p>
         <div class="menu-buttons">
             <button onclick="showLevels()">Start Mission</button>
-            <button onclick="alert('Coming Soon!')">Lab Mode</button>
+            <button class="boosty-promo" onclick="window.open('https://boosty.to/your-profile', '_blank')">Premium Lab Mode</button>
         </div>
     </div>
 
@@ -33,8 +33,33 @@
         <button class="reset-btn" onclick="location.reload()">Reset Mission</button>
     </div>
 
+    <div id="success-screen" class="achievement-popup">
+        <h2 id="success-title">MISSION SUCCESS!</h2>
+        <p id="success-message">You have mastered the laws of physics.</p>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            <button class="boosty-promo" onclick="window.open('https://boosty.to/your-profile', '_blank')">Unlock Bonus Levels on Boosty</button>
+            <button onclick="location.reload()">Back to Menu</button>
+        </div>
+    </div>
+
+    <div class="ad-container">
+        <span class="ad-label">Advertisement</span>
+        <div id="adsense-slot" style="width: 728px; height: 90px; background: rgba(255,255,255,0.05); border: 1px dashed #333; display: flex; align-items: center; justify-content: center;">
+            <span style="color: #444; font-size: 12px;">Google AdSense Banner Space</span>
+        </div>
+    </div>
+
     <canvas id="gameCanvas"></canvas>
 
     <script src="game.js"></script>
+    
+    <script>
+        // Ийгилик терезесин көрсөтүү функциясы (game.js ичинен чакырылат)
+        function showSuccess(msg) {
+            document.getElementById('game-ui').style.display = 'none';
+            document.getElementById('success-screen').style.display = 'block';
+            document.getElementById('success-message').innerText = msg;
+        }
+    </script>
 </body>
 </html>
