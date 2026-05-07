@@ -52,8 +52,9 @@ function startLevel(level) {
 
     if (level === 1) {
         earth = { x: centerX, y: centerY, radius: 60 };
-        sat = { x: centerX, y: centerY - 120, radius: 8, vx: 0, vy: 0, launched: false };
+        sat = { x: centerX, y: centerY - 150, radius: 8, vx: 0, vy: 0, launched: false };
         angleCount = 0;
+        lastAngle = Math.atan2(sat.y - earth.y, sat.x - earth.x);
         message = "Press SPACE to launch!";
         requestAnimationFrame(gameLoopLevel1);
     } else if (level === 2) {
@@ -87,7 +88,8 @@ function startLevel(level) {
 window.addEventListener('keydown', (e) => {
     if (gameOver) return;
     if (currentLevel === 1 && e.code === 'Space' && !sat.launched) {
-        sat.vx = 4.8; sat.launched = true;
+        sat.vx = 5.2; // Оптималдуу орбиталык ылдамдык
+        sat.launched = true;
     }
     if (currentLevel === 2) {
         if (e.code === 'ArrowUp') targetPressure += 8;
@@ -101,7 +103,6 @@ window.addEventListener('keydown', (e) => {
     }
 });
 
-// Чычкан менен чыкылдатуу (Level 4 үчүн)
 canvas.addEventListener('mousedown', (e) => {
     if (currentLevel === 4 && !gameOver) {
         const rect = canvas.getBoundingClientRect();
@@ -133,23 +134,26 @@ function gameLoopLevel1() {
         let dx = earth.x - sat.x;
         let dy = earth.y - sat.y;
         let dist = Math.sqrt(dx*dx + dy*dy);
-        let force = (G * earth.radius) / (dist * dist);
-        sat.vx += force * (dx / dist) * 15;
-        sat.vy += force * (dy / dist) * 15;
-        sat.x += sat.vx; sat.y += sat.vy;
+        
+        let force = (G * 2500) / (dist * dist); 
+        sat.vx += force * (dx / dist);
+        sat.vy += force * (dy / dist);
+        
+        sat.x += sat.vx; 
+        sat.y += sat.vy;
 
-        let currentAngle = Math.atan2(dy, dx);
+        let currentAngle = Math.atan2(sat.y - earth.y, sat.x - earth.x);
         if (lastAngle < 0 && currentAngle >= 0) angleCount++;
         lastAngle = currentAngle;
 
-        if (dist < earth.radius + sat.radius) { message = "CRASHED!"; gameOver = true; }
-        if (dist > 800) { message = "LOST IN SPACE!"; gameOver = true; }
-        if (angleCount >= 3) { message = "MISSION SUCCESS!"; gameOver = true; }
+        if (dist < earth.radius + sat.radius) { message = "CRASHED INTO EARTH!"; gameOver = true; }
+        if (dist > 1000) { message = "LOST IN DEEP SPACE!"; gameOver = true; }
+        if (angleCount >= 2) { message = "MISSION SUCCESS!"; gameOver = true; }
     }
 
-    drawObject(earth.x, earth.y, earth.radius, '#1e90ff', 30);
+    drawObject(earth.x, earth.y, earth.radius, '#1e90ff', 40);
     drawObject(sat.x, sat.y, sat.radius, 'white', 15);
-    drawUI();
+    drawUI(`Orbits: ${angleCount}/2`);
     requestAnimationFrame(gameLoopLevel1);
 }
 
@@ -206,7 +210,6 @@ function gameLoopLevel4() {
     if (currentLevel !== 4 || gameOver) return;
     
     universeSize += 0.3;
-    // Аалам кеңейген сайын фон муздап (көк түскө) өтөт
     ctx.fillStyle = `rgb(${Math.max(0, 30 - universeSize/10)}, 0, ${Math.min(50, universeSize/5)})`;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -220,7 +223,7 @@ function gameLoopLevel4() {
         drawObject(p.x, p.y, p.radius, '#ff00ff', 15);
     });
 
-    drawUI(`Nucleosynthesis: ${atomsCreated}/${targetAtoms} Atoms`);
+    drawUI(`Nucleosynthesis: ${atomsCreated}/${targetAtoms}`);
     requestAnimationFrame(gameLoopLevel4);
 }
 
