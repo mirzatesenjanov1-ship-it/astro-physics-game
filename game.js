@@ -116,3 +116,76 @@ function gameLoop() {
 
     requestAnimationFrame(gameLoop);
 }
+// --- LEVEL 2: STELLAR EVOLUTION ---
+let starRadius = 50;
+let coreTemperature = 15000;
+let pressure = 50;
+let targetPressure = 50;
+let starLevelActive = false;
+
+function initLevel2() {
+    starLevelActive = true;
+    message = "Balance the Star! Keep pressure between 40-60";
+    gameLoopLevel2();
+}
+
+// 2-деңгээл үчүн башкаруу
+window.addEventListener('keydown', (e) => {
+    if(starLevelActive) {
+        if(e.code === 'ArrowUp') targetPressure += 5;   // Температураны көтөрүү
+        if(e.code === 'ArrowDown') targetPressure -= 5; // Температураны түшүрүү
+    }
+});
+
+function gameLoopLevel2() {
+    if(gameOver || !starLevelActive) return;
+
+    ctx.fillStyle = '#020205';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Физикалык симуляция: Басымды тең салмактоо
+    pressure += (targetPressure - pressure) * 0.1;
+    starRadius = 100 - pressure; // Басым көп болсо жылдыз чоңоёт
+
+    // Жаркыроо түсү басымга жараша өзгөрөт
+    let starColor = `rgb(255, ${Math.min(255, 255 - (pressure - 50) * 5)}, 0)`;
+
+    // Жылдызды тартуу
+    ctx.shadowBlur = 40 + Math.random() * 20;
+    ctx.shadowColor = starColor;
+    ctx.beginPath();
+    ctx.arc(canvas.width / 2, canvas.height / 2, starRadius, 0, Math.PI * 2);
+    ctx.fillStyle = starColor;
+    ctx.fill();
+    ctx.closePath();
+
+    // Утулуу шарттары
+    if(pressure > 80) {
+        message = "SUPERNOVA! The star exploded!";
+        gameOver = true;
+    } else if(pressure < 20) {
+        message = "BLACK DWARF! The star collapsed.";
+        gameOver = true;
+    }
+
+    // Статистика
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = "white";
+    ctx.font = "20px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText(message, canvas.width / 2, 60);
+    ctx.fillText(`Internal Pressure: ${Math.round(pressure)}%`, canvas.width / 2, 100);
+    ctx.fillText("Use UP/DOWN arrows to control energy", canvas.width / 2, canvas.height - 50);
+
+    requestAnimationFrame(gameLoopLevel2);
+}
+
+// startLevel функциясын жаңыртуу (мурунку функцияны ушуга алмаштырыңыз)
+function startLevel(level) {
+    document.getElementById('level-menu').style.display = 'none';
+    document.getElementById('game-ui').style.display = 'block';
+    gameOver = false;
+    
+    if(level === 1) initLevel1();
+    if(level === 2) initLevel2();
+}
