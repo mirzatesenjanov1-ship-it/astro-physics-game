@@ -13,7 +13,7 @@
         <p>Explore the wonders of Astrophysics</p>
         <div class="menu-buttons">
             <button onclick="showLevels()">Start Mission</button>
-            <button class="boosty-promo" onclick="window.open('https://boosty.to/astrophysica/purchase/3915523?ssource=DIRECT&share=subscription_link', '_blank')">Premium Lab Mode</button>
+            <button class="boosty-promo" onclick="enterPremiumLab()">Premium Lab Mode</button>
         </div>
     </div>
 
@@ -37,7 +37,9 @@
         <h2 id="success-title">MISSION SUCCESS!</h2>
         <p id="success-message">You have mastered the laws of physics.</p>
         <div style="display: flex; flex-direction: column; gap: 10px;">
-            <button class="boosty-promo" onclick="window.open('https://boosty.to/astrophysica/purchase/3915523?ssource=DIRECT&share=subscription_link', '_blank')">Unlock Bonus Levels on Boosty</button>
+            <button class="boosty-promo" onclick="window.open('https://boosty.to/astrophysica/purchase/3923515?ssource=DIRECT&share=subscription_link', '_blank')">
+                Unlock Bonus Levels on Boosty
+            </button>
             <button onclick="location.reload()">Back to Menu</button>
         </div>
     </div>
@@ -54,10 +56,16 @@
     <script src="game.js"></script>
     
     <script>
+        // Ийгилик терезесин көрсөтүү
         function showSuccess(msg) {
             document.getElementById('game-ui').style.display = 'none';
             document.getElementById('success-screen').style.display = 'block';
             document.getElementById('success-message').innerText = msg;
+        }
+
+        // Реклама блогун деңгээл ичинде жашырып/көрсөтүү (опционалдуу)
+        function toggleAds(show) {
+            document.querySelector('.ad-container').style.display = show ? 'flex' : 'none';
         }
     </script>
 </body>
