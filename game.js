@@ -29,7 +29,6 @@ let lastAngle = 0;
 let particles = [];
 let atomsCreated = 0;
 const targetAtoms = 10;
-let universeSize = 100;
 
 // --- UI БАШКАРУУ ---
 function showLevels() {
@@ -42,16 +41,14 @@ function backToMenu() {
     document.getElementById('main-menu').style.display = 'flex';
 }
 
-// PREMIUM LAB MODE КИРҮҮ (English Version)
 function enterPremiumLab() {
     const code = prompt("To enter Premium Lab Mode, please subscribe to the 'astro-physics-game' level on Boosty and enter your access code here:");
-
     if (code === "1999") {
         alert("Access granted! Welcome to the Premium Lab.");
         startPremiumLab();
     } else if (code !== null) {
-        alert("Invalid code! Please subscribe to the 'astro-physics-game' level on our Boosty page to get your monthly access code.");
-        window.open('https://boosty.to/astrophysica/purchase/3923515?ssource=DIRECT&share=subscription_link', '_blank');
+        alert("Invalid code! Redirecting to Boosty...");
+        window.location.href = 'https://boosty.to/astrophysica/purchase/3923515?ssource=DIRECT&share=subscription_link';
     }
 }
 
@@ -59,10 +56,14 @@ function startPremiumLab() {
     currentLevel = 'premium';
     gameOver = false;
     particles = [];
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    earth = { x: centerX, y: centerY, radius: 45 }; // Борбордук жылдыз
+    
     document.getElementById('main-menu').style.display = 'none';
     document.getElementById('level-menu').style.display = 'none';
     document.getElementById('game-ui').style.display = 'block';
-    message = "PREMIUM LAB: Physics Sandbox Active";
+    message = "PREMIUM LAB: Click to launch planets into orbit!";
     requestAnimationFrame(premiumLoop);
 }
 
@@ -94,7 +95,7 @@ function startLevel(level) {
         message = "Avoid the Event Horizon! Use ARROW KEYS";
         requestAnimationFrame(gameLoopLevel3);
     } else if (level === 4) {
-        atomsCreated = 0; universeSize = 100; particles = [];
+        atomsCreated = 0; particles = [];
         for(let i=0; i<15; i++) {
             particles.push({ x: Math.random()*canvas.width, y: Math.random()*canvas.height, vx: (Math.random()-0.5)*6, vy: (Math.random()-0.5)*6, radius: 6, color: '#ff00ff' });
         }
@@ -141,17 +142,24 @@ canvas.addEventListener('mousedown', (e) => {
     }
 
     if (currentLevel === 'premium') {
+        let dx = earth.x - mouseX;
+        let dy = earth.y - mouseY;
+        let dist = Math.sqrt(dx*dx + dy*dy);
+        
+        // Автоматтык орбиталдык ылдамдык
+        let orbitalSpeed = Math.sqrt((G * 3500) / dist);
+
         particles.push({
             x: mouseX, y: mouseY,
-            vx: (Math.random() - 0.5) * 5,
-            vy: (Math.random() - 0.5) * 5,
-            radius: Math.random() * 20 + 5,
-            color: `hsl(${Math.random() * 360}, 70%, 60%)`
+            vx: (dy / dist) * orbitalSpeed,
+            vy: (-dx / dist) * orbitalSpeed,
+            radius: Math.random() * 7 + 3,
+            color: `hsl(${Math.random() * 360}, 80%, 60%)`
         });
     }
 });
 
-// --- ОЮНДУН ЦИКЛДЕРИ (LOOPS) ---
+// --- ОЮНДУН ЦИКЛДЕРИ ---
 
 function gameLoopLevel1() {
     if (currentLevel !== 1 || gameOver) return;
@@ -199,20 +207,15 @@ function gameLoopLevel3() {
     ship.vx += force * (dx / dist); ship.vy += force * (dy / dist);
     ship.x += ship.vx * timeFactor; ship.y += ship.vy * timeFactor;
 
-    // --- КАРА ТЕШИКТИ КӨРҮНҮКТҮҮ КЫЛУУ ---
+    // Black Hole Visuals
     ctx.save();
-    ctx.shadowBlur = 60;
-    ctx.shadowColor = '#ff4500'; 
-    ctx.beginPath();
-    ctx.arc(blackHole.x, blackHole.y, blackHole.radius + 2, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(255, 69, 0, 0.5)';
-    ctx.lineWidth = 4;
-    ctx.stroke();
+    ctx.shadowBlur = 60; ctx.shadowColor = '#ff4500'; 
+    ctx.beginPath(); ctx.arc(blackHole.x, blackHole.y, blackHole.radius + 2, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(255, 69, 0, 0.5)'; ctx.lineWidth = 4; ctx.stroke();
     ctx.restore();
 
     drawObject(blackHole.x, blackHole.y, blackHole.radius, 'black', 0);
     drawObject(ship.x, ship.y, ship.radius, '#00ff00', 15);
-    
     if (dist < blackHole.radius + 5) { message = "SPAGHETTIFIED!"; gameOver = true; }
     drawUI(`Time Dilation: x${timeFactor.toFixed(2)}`);
     requestAnimationFrame(gameLoopLevel3);
@@ -227,20 +230,42 @@ function gameLoopLevel4() {
         if(p.y < 0 || p.y > canvas.height) p.vy *= -1;
         drawObject(p.x, p.y, p.radius, p.color, 15);
     });
-    drawUI(`Atoms: ${atomsCreated}/${targetAtoms}`);
+    drawUI(`Atoms Created: ${atomsCreated}/${targetAtoms}`);
     requestAnimationFrame(gameLoopLevel4);
 }
 
 function premiumLoop() {
     if (currentLevel !== 'premium' || gameOver) return;
-    ctx.fillStyle = '#01010a'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-    particles.forEach((p) => {
-        p.x += p.vx; p.y += p.vy;
-        if(p.x < 0 || p.x > canvas.width) p.vx *= -1;
-        if(p.y < 0 || p.y > canvas.height) p.vy *= -1;
-        drawObject(p.x, p.y, p.radius, p.color, 20);
+    
+    // Траекториялар (сызыктар) үчүн экранды тунук тазалоо
+    ctx.fillStyle = 'rgba(1, 1, 10, 0.15)'; 
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Борбордук Күн
+    drawObject(earth.x, earth.y, earth.radius, '#ffcc00', 60);
+
+    particles.forEach((p, index) => {
+        let dx = earth.x - p.x;
+        let dy = earth.y - p.y;
+        let dist = Math.sqrt(dx * dx + dy * dy);
+        
+        if (dist > earth.radius) {
+            let force = (G * 3500) / (dist * dist); 
+            p.vx += force * (dx / dist);
+            p.vy += force * (dy / dist);
+        }
+
+        p.x += p.vx;
+        p.y += p.vy;
+
+        if (dist < earth.radius + p.radius - 5) {
+            particles.splice(index, 1);
+        }
+
+        drawObject(p.x, p.y, p.radius, p.color, 15);
     });
-    drawUI("PREMIUM MODE: Click to spawn planets");
+
+    drawUI(`Planets Active: ${particles.length} | Gravity Sim`);
     requestAnimationFrame(premiumLoop);
 }
 
