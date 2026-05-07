@@ -1,35 +1,35 @@
 <!DOCTYPE html>
-<html lang="ky">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cosmos Odyssey</title>
+    <title>Cosmos Odyssey: Physics Quest</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <div id="main-menu" class="overlay">
         <h1>COSMOS ODYSSEY</h1>
-        <p>Астрофизикалык саякатка даярсызбы?</p>
+        <p>Explore the wonders of Astrophysics</p>
         <div class="menu-buttons">
-            <button onclick="showLevels()">Оюнду баштоо</button>
-            <button onclick="alert('Жакында кошулат!')">Лаборатория</button>
+            <button onclick="showLevels()">Start Mission</button>
+            <button onclick="alert('Coming Soon!')">Lab Mode</button>
         </div>
     </div>
 
     <div id="level-menu" class="overlay" style="display: none;">
-        <h2>Деңгээлди тандаңыз</h2>
+        <h2>Select Mission</h2>
         <div class="level-grid">
-            <button onclick="startLevel(1)">1. Гравитация (Орбита)</button>
-            <button disabled>2. Жылдыздын өмүрү</button>
-            <button disabled>3. Кара туюк</button>
+            <button onclick="startLevel(1)">1. Orbital Mechanics</button>
+            <button disabled>2. Stellar Evolution</button>
+            <button disabled>3. Black Hole Event Horizon</button>
         </div>
-        <button class="back-btn" onclick="backToMenu()">Артка</button>
+        <button class="back-btn" onclick="backToMenu()">Back</button>
     </div>
 
     <div id="game-ui" style="display: none;">
-        <div class="stats">Ылдамдык: <span id="speed-val">0</span> км/с</div>
-        <button class="reset-btn" onclick="location.reload()">Кайра баштоо</button>
+        <div class="stats">Velocity: <span id="speed-val">0</span> km/s</div>
+        <button class="reset-btn" onclick="location.reload()">Reset Mission</button>
     </div>
 
     <canvas id="gameCanvas"></canvas>
